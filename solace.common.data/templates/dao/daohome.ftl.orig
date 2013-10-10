@@ -1,0 +1,22 @@
+${pojo.getPackageDeclaration()}
+// Generated ${date} by Hibernate Tools ${version}
+
+<#assign classbody>
+<#assign declarationName = pojo.importType(pojo.getDeclarationName())/>
+/**
+ * DAO object for domain model class ${declarationName}.
+ * @see ${pojo.getQualifiedDeclarationName()}
+ * @author Hibernate Tools
+ */
+<#if ejb3>
+@${pojo.importType("javax.ejb.Stateless")}
+</#if>
+@Repository
+public class ${declarationName}Dao extends GenericDao<,${declarationName}> implements I${declarationName}Dao, Serializable {
+
+}
+</#assign>
+
+${pojo.generateImports()}
+import org.springframework.stereotype.*;
+${classbody}

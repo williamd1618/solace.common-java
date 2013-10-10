@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2013 <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a>.
+  All rights reserved. This program, solace.common, and file, caches.xml, and the accompanying materials
+  are made available under the terms of the GNU Public License v3.0
+  which accompanies this distribution, and is available at
+  http://www.gnu.org/licenses/gpl.html
+  
+  Contributors:
+      <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a> - initial API and implementation
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+      http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+	<bean id="caches" class="com.solace.caching.Caches">
+		<property name="caches">
+			<list>
+				<bean class="com.solace.caching.Caches$CacheConfig">
+					<!-- For hibernate/jpa to take advantage of the confiuration the
+					configuration must be named hibernate.  Otherwise it may be named
+					any other name that you would want to access via a CacheAccessor
+					 -->
+					<property name="name" value="Hibernate" />
+					<property name="type">
+						<bean class="com.solace.caching.Caches$CacheConfig$Type">
+							<!-- potential values:
+							com.solace.caching.Cache
+							com.solace.caching.LRUCache
+							Please see all classes that implement
+							com.solace.caching.ICache
+							 -->
+							<property name="value"
+								value="com.solace.caching.DistributedCache" />
+							<!--  all properties are bound by the implemetnation of ICache -->
+							<property name="properties">
+								<list>
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="Server.Count" />
+										<property name="value" value="1" />
+									</bean>
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="Server[0].Host" />
+										<property name="value" value="3.44.153.30" />
+									</bean>
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="SocketPool.MinSize" />
+										<property name="value" value="5" />
+									</bean>									
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="SocketPool.MaxSize" />
+										<property name="value" value="20" />
+									</bean>
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="SocketPool.InitialConnections" />
+										<property name="value" value="10" />
+									</bean>
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="SocketPool.SocketTimeout" />
+										<property name="value" value="100" />
+									</bean>	
+									<bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="SocketPool.SocketConnectTimeout" />
+										<property name="value" value="1000" />
+									</bean>									
+									<!-- <bean
+										class="com.solace.caching.Caches$CacheConfig$Type$Property">
+										<property name="name" value="CacheTimespan" />
+										<property name="value" value="20" />
+									</bean> -->												
+								</list>
+							</property>
+						</bean>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>

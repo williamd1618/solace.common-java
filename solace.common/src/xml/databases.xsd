@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2013 <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a>.
+  All rights reserved. This program, solace.common, and file, databases.xsd, and the accompanying materials
+  are made available under the terms of the GNU Public License v3.0
+  which accompanies this distribution, and is available at
+  http://www.gnu.org/licenses/gpl.html
+  
+  Contributors:
+      <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a> - initial API and implementation
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+
+	<xs:element name="databases">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="database" minOccurs="1" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="hostname" type="xs:string" />
+							<xs:element name="application" type="xs:string" />
+							<xs:element name="auth">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="username" type="xs:string" />
+										<xs:element name="password" type="xs:string" />
+									</xs:sequence>
+									<xs:attribute name="trusted" type="xs:boolean" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="pooling">
+								<xs:complexType>
+									<xs:attribute name="maxSize" type="xs:int" />
+									<xs:attribute name="minSize" type="xs:int" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="timeout">
+								<xs:complexType>
+									<xs:attribute name="connection" type="xs:int" />
+									<xs:attribute name="command" type="xs:int" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="handler">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="property">
+											<xs:complexType>
+												<xs:attribute name="name" type="xs:string" />
+												<xs:attribute name="value" type="xs:string" />
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

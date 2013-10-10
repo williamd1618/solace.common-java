@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2013 <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a>.
+  All rights reserved. This program, solace.common, and file, exceptionHandlers.xsd, and the accompanying materials
+  are made available under the terms of the GNU Public License v3.0
+  which accompanies this distribution, and is available at
+  http://www.gnu.org/licenses/gpl.html
+  
+  Contributors:
+      <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a> - initial API and implementation
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+
+	<xs:element name="exceptionHandlers">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="default" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:attribute name="exception" type="xs:string" />
+						<xs:attribute name="class" type="xs:string" />
+					</xs:complexType>
+				</xs:element> 
+				<xs:element name="target" minOccurs="1" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>							
+							<xs:element name="handler" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="exception" type="xs:string" />
+									<xs:attribute name="class" type="xs:string" />
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="class" type="xs:string" />
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>

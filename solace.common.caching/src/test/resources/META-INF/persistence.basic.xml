@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2013 <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a>.
+  All rights reserved. This program, solace.common.caching, and file, persistence.basic.xml, and the accompanying materials
+  are made available under the terms of the GNU Public License v3.0
+  which accompanies this distribution, and is available at
+  http://www.gnu.org/licenses/gpl.html
+  
+  Contributors:
+      <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a> - initial API and implementation
+-->
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+	version="2.0">
+	<persistence-unit name="test" transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>com.solace.data.basic.Person</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.connection.url" value="jdbc:hsqldb:mem:test" />
+			<property name="hibernate.connection.driver_class" value="org.hsqldb.jdbcDriver" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
+			<!-- <property name="hibernate.hbm2ddl.auto" value="create-drop" /> -->
+			<property name="hibernate.connection.username" value="sa" />
+			<property name="hibernate.connection.password" value="" />
+			<property name="hibernate.show_sql" value="true" />
+			<!-- <property name="hibernate.cglib.use_reflection_optimizer" value="true" /> 
+			<property name="hibernate.connection.autocommit" value="false"/>
+			<property name="hibernate.transaction.auto_close_session" value="false"/>
+			<property name="hibernate.transaction.flush_before_completion" value="true"/> -->
+			
+			<!--  turn off the hibernate auto_commit property = false -->
+			<!--
+				<property name="hibernate.cache.provider_class"
+				value="com.solace.caching.HibernateCacheAccessor"/>
+			-->
+		</properties>
+	</persistence-unit>
+</persistence>
