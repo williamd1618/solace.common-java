@@ -1,0 +1,4 @@
+solace.common-java
+==================
+
+standardized 
