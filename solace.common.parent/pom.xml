@@ -26,6 +26,8 @@
 		<slf4j.version>1.7.5</slf4j.version>
 		<hibernate.version>3.5.4-Final</hibernate.version>
 		<hibernate.tools.version>3.2.4.GA</hibernate.tools.version>
+		<guava.version>15.0</guava.version>
+		<httpcomponents.version>4.2.3</httpcomponents.version>
 	</properties>
 
 
@@ -288,7 +290,7 @@
 				<artifactId>hibernate-tools</artifactId>
 				<version>${hibernate.tools.version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>org.hibernate</groupId>
 				<artifactId>hibernate-annotations</artifactId>
@@ -376,6 +378,26 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore</artifactId>
+				<version>${httpcomponents.version}</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpcomponents.version}</version>
+				<scope>compile</scope>
+			</dependency>
+
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -409,6 +431,21 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+
 
 	</dependencies>
 

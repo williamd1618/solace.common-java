@@ -45,7 +45,7 @@ import com.solace.logging.*;
  * @see Autowired
  */
 @SuppressWarnings("unchecked")
-public abstract class GenericDao<ID extends Number, E extends Entity<ID>>
+public abstract class GenericDao<ID extends Number, E extends IEntity<ID>>
 		implements IGenericDao<ID, E> {
 
 	private static final String S_TOOK_D_MS_TO_EXECUTE = "{} took {} ms to execute";

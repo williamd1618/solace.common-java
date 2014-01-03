@@ -55,7 +55,7 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 	 */
 	public ConfigurableApplicationContext(ApplicationContext parent)
 			throws BeansException {
-		LOGGER.info("Invoking ctor with a context");
+		LOGGER.infoFormat("Invoking ctor with a context");
 		// Initialize and register a StaticMessageSource.
 		this.staticMessageSource = new StaticMessageSource();
 		getBeanFactory().registerSingleton(MESSAGE_SOURCE_BEAN_NAME,
@@ -114,7 +114,7 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 	
 	
 	public void registerSingleton(String name, Object o) throws BeansException {
-		LOGGER.info("Registering a {} with name {} as singleton", o.getClass().getName(), name);
+		LOGGER.infoFormat("Registering a %s with name %s as singleton", o.getClass().getName(), name);
 		getDefaultListableBeanFactory().registerSingleton(name, o);		
 	}
 
