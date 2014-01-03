@@ -10,8 +10,6 @@
  ******************************************************************************/
 package com.solace.data;
 
-import java.util.Date;
-
 public interface IEntity<ID> extends IPersistable {
 
 	public ID getId();
