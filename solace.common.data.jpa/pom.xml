@@ -9,7 +9,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>solace.common.data</artifactId>
+	<artifactId>solace.common.data.jpa</artifactId>
 	<packaging>jar</packaging>
 
 	<parent>
@@ -20,12 +20,8 @@
 	</parent>
 
 
-	<name>solace.common.data</name>
+	<name>solace.common.data.jpa</name>
 	<url>http://maven.apache.org</url>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -33,6 +29,13 @@
 			<artifactId>solace.common</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.solace</groupId>
+			<artifactId>solace.common.data</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
@@ -100,6 +103,23 @@
 		</dependency>
 	</dependencies>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<useSystemClassLoader>false</useSystemClassLoader>
+					<includes>
+						<include>com/solace/data/DataTests.java</include>
+					</includes>
+					<excludes>
+						<exclude>**/data/BaseTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<reporting>
 		<plugins>
@@ -135,4 +155,5 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
 </project>

@@ -472,12 +472,13 @@
 			</plugin>
 		</plugins>
 	</build>
+	
 	<modules>
 		<module>../solace.common</module>
 		<module>../solace.common.threading</module>
 		<module>../solace.common.caching</module>
 		<module>../solace.common.data</module>
+		<module>../solace.common.data.jpa</module>
+		<module>../solace.common.data.couchdb</module>		
 	</modules>
-
-
 </project>

@@ -12,13 +12,17 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.StaticMessageSource;
 
 /**
- * Hijacked from Spring to see if we can register and actual instance in for singletons
+ * Hijacked from Spring to see if we can register and actual instance in for
+ * singletons
+ * 
  * @author <a href="mailto:daniel.williams@gmail.com">Daniel Williams</a>
- *
+ * 
  */
-public class ConfigurableApplicationContext extends AnnotationConfigApplicationContext {
-	
-	private static final Logger LOGGER = Logger.getLogger(ConfigurableApplicationContext.class);
+public class ConfigurableApplicationContext extends
+		AnnotationConfigApplicationContext {
+
+	private static final Logger LOGGER = Logger
+			.getLogger(ConfigurableApplicationContext.class);
 
 	private final StaticMessageSource staticMessageSource;
 
@@ -31,12 +35,12 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 	 * @see #refresh
 	 */
 	public ConfigurableApplicationContext() throws BeansException {
-		this((ApplicationContext)null);
+		this((ApplicationContext) null);
 		LOGGER.info("Invoking default ctor");
 	}
-	
-	
-	public ConfigurableApplicationContext(String... basePackages) throws BeansException {
+
+	public ConfigurableApplicationContext(String... basePackages)
+			throws BeansException {
 		super(basePackages);
 		LOGGER.info("Invoking ctor with base packages");
 		this.staticMessageSource = new StaticMessageSource();
@@ -55,7 +59,7 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 	 */
 	public ConfigurableApplicationContext(ApplicationContext parent)
 			throws BeansException {
-		LOGGER.infoFormat("Invoking ctor with a context");
+		LOGGER.info("Invoking ctor with a context");
 		// Initialize and register a StaticMessageSource.
 		this.staticMessageSource = new StaticMessageSource();
 		getBeanFactory().registerSingleton(MESSAGE_SOURCE_BEAN_NAME,
@@ -84,7 +88,7 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 			throws BeansException {
 		GenericBeanDefinition bd = new GenericBeanDefinition();
 		bd.setBeanClass(clazz);
-		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);		
+		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
 	}
 
 	/**
@@ -102,20 +106,19 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 		bd.setPropertyValues(pvs);
 		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
 	}
-	
-	
+
 	public void registerSingleton(String name, Class clazz,
 			ConstructorArgumentValues ctorArgs) throws BeansException {
 		GenericBeanDefinition bd = new GenericBeanDefinition();
 		bd.setBeanClass(clazz);
-		bd.setConstructorArgumentValues(ctorArgs);		
-		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);		
+		bd.setConstructorArgumentValues(ctorArgs);
+		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
 	}
-	
-	
+
 	public void registerSingleton(String name, Object o) throws BeansException {
-		LOGGER.infoFormat("Registering a %s with name %s as singleton", o.getClass().getName(), name);
-		getDefaultListableBeanFactory().registerSingleton(name, o);		
+		LOGGER.info("Registering a {} with name {} as singleton", o.getClass()
+				.getName(), name);
+		getDefaultListableBeanFactory().registerSingleton(name, o);
 	}
 
 	/**
@@ -150,14 +153,13 @@ public class ConfigurableApplicationContext extends AnnotationConfigApplicationC
 		bd.setPropertyValues(pvs);
 		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
 	}
-	
-	
+
 	public void registerPrototype(String name, Class clazz,
 			ConstructorArgumentValues ctorArgs) throws BeansException {
 		GenericBeanDefinition bd = new GenericBeanDefinition();
 		bd.setBeanClass(clazz);
 		bd.setScope(GenericBeanDefinition.SCOPE_PROTOTYPE);
-		bd.setConstructorArgumentValues(ctorArgs);		
+		bd.setConstructorArgumentValues(ctorArgs);
 		getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
 	}
 
