@@ -16,7 +16,7 @@
 		<groupId>com.solace</groupId>
 		<artifactId>solace.common.parent</artifactId>
 		<relativePath>../solace.common.parent/pom.xml</relativePath>
-		<version>1.3.0</version>
+		<version>1.4.0</version>
 	</parent>
 
 

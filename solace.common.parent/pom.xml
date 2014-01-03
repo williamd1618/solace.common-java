@@ -11,7 +11,7 @@
 
 	<groupId>com.solace</groupId>
 	<artifactId>solace.common.parent</artifactId>
-	<version>1.3.0</version>
+	<version>1.4.0</version>
 	<packaging>pom</packaging>
 
 	<name>solace.common.parent</name>
@@ -479,6 +479,7 @@
 		<module>../solace.common.caching</module>
 		<module>../solace.common.data</module>
 		<module>../solace.common.data.jpa</module>
-		<module>../solace.common.data.couchdb</module>		
+		<module>../solace.common.data.couchdb</module>
+		<module>../solace.common.data.cassandra</module>		
 	</modules>
 </project>
