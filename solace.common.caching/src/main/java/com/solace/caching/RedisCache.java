@@ -11,17 +11,13 @@
 package com.solace.caching;
 
 import java.io.*;
-
 import java.security.*;
 import java.util.*;
 
-//import com.danga.MemCached.*;
-import net.rubyeye.xmemcached.*;
-import net.rubyeye.xmemcached.command.*;
-import net.rubyeye.xmemcached.utils.*;
+import redis.clients.jedis.*;
+
 import com.solace.*;
-import com.solace.caching.*;
-import com.solace.logging.*;
+import com.solace.support.ObjectMapperUtils;
 
 /**
  * Is a pluggable implementation that wraps the Memcached implementation.
@@ -38,27 +34,27 @@ import com.solace.logging.*;
  * application and remove the need to synchronize across resources within the
  * memcached client implementation.
  * 
- * @see {@link DistributedCache#SERVER_COUNT}
- * @see {@link DistributedCache#SERVER_HOST}
- * @see {@link DistributedCache#SERVER_PORT}
- * @see {@link DistributedCache#SERVER_WEIGHT}
- * @see {@link DistributedCache#DEFAULT_SERVER_WEIGHT}
- * @see {@link DistributedCache#SOCKET_POOL_MINSIZE}
- * @see {@link DistributedCache#SOCKET_POOL_MAXSIZE}
- * @see {@link DistributedCache#CONNECTION_TIMEOUT}
- * @see {@link DistributedCache#CACHE_TIMESPAN}
- * @see {@link DistributedCache#SOCKET_POOL_INIT_CONNS}
- * @see {@link DistributedCache#SOCKET_POOL_MAINT_THREAD_SLEEP}
- * @see {@link DistributedCache#SOCKET_POOL_SOCKET_CONNECT_TO}
- * @see {@link DistributedCache#SOCKET_POOL_SOCKET_TO}
- * @see {@link DistributedCache#COMPRESS}
- * @see {@link DistributedCache#COMPRESSION_THRESHOLD}
+ * @see {@link RedisCache#SERVER_COUNT}
+ * @see {@link RedisCache#SERVER_HOST}
+ * @see {@link RedisCache#SERVER_PORT}
+ * @see {@link RedisCache#SERVER_WEIGHT}
+ * @see {@link RedisCache#DEFAULT_SERVER_WEIGHT}
+ * @see {@link RedisCache#SOCKET_POOL_MINSIZE}
+ * @see {@link RedisCache#SOCKET_POOL_MAXSIZE}
+ * @see {@link RedisCache#CONNECTION_TIMEOUT}
+ * @see {@link RedisCache#CACHE_TIMESPAN}
+ * @see {@link RedisCache#SOCKET_POOL_INIT_CONNS}
+ * @see {@link RedisCache#SOCKET_POOL_MAINT_THREAD_SLEEP}
+ * @see {@link RedisCache#SOCKET_POOL_SOCKET_CONNECT_TO}
+ * @see {@link RedisCache#SOCKET_POOL_SOCKET_TO}
+ * @see {@link RedisCache#COMPRESS}
+ * @see {@link RedisCache#COMPRESSION_THRESHOLD}
  * 
  * 
  * @author dwilliams
  * 
  */
-public class DistributedCache extends Cache {
+public class RedisCache extends Cache {
 
 	private static final String COULD_NOT_SET = "Could not set";
 
@@ -74,13 +70,13 @@ public class DistributedCache extends Cache {
 
 	private static final String COULD_NOT_DELETE = "Could not delete";
 
-	private static final String S_WAS_NOT_SUCCESSFULLY_DELETED = "[{}] was NOT successfully deleted.";
+	private static final String S_WAS_NOT_SUCCESSFULLY_DELETED = "[%s] was NOT successfully deleted.";
 
-	private static final String S_WAS_SUCCESSFULLY_DELETED = "[{}] was successfully deleted.";
+	private static final String S_WAS_SUCCESSFULLY_DELETED = "[%d] was successfully deleted.";
 
-	private static final String S_WAS_NOT_SUCCESSFULLY_SET = "[{}] was NOT successfully set.";
+	private static final String S_WAS_NOT_SUCCESSFULLY_SET = "[%d] was NOT successfully set.";
 
-	private static final String S_WAS_SUCCESSFULLY_SET = "[{}] was successfully set.";
+	private static final String S_WAS_SUCCESSFULLY_SET = "[%d] was successfully set.";
 
 	private static final String STORING_S_S_WITH_EXPIRY_S = "Storing {} = {} with expiry {}.";
 
@@ -89,7 +85,7 @@ public class DistributedCache extends Cache {
 	private static final String S_MUST_BE_AN_INTEGER_1 = "{} must be an integer > 1";
 
 	static com.solace.logging.Logger LOGGER = com.solace.logging.Logger
-			.getLogger(DistributedCache.class);
+			.getLogger(RedisCache.class);
 
 	// avoid recurring construction
 	private static ThreadLocal<MessageDigest> MD5 = new ThreadLocal<MessageDigest>() {
@@ -103,9 +99,6 @@ public class DistributedCache extends Cache {
 			}
 		}
 	};
-
-	private MemcachedClient m_client = null;
-	// private SockIOPool m_pool = null;
 
 	private int m_minPoolSize = 5;
 	private int m_maxPoolSize = 10;
@@ -125,17 +118,17 @@ public class DistributedCache extends Cache {
 	/**
 	 * host of server
 	 */
-	public static final String SERVER_HOST = "Server[{}].Host";
+	public static final String SERVER_HOST = "Server[%d].Host";
 
 	/**
 	 * port of server
 	 */
-	public static final String SERVER_PORT = "Server[{}].Port";
+	public static final String SERVER_PORT = "Server[%d].Port";
 
 	/**
 	 * weight in relation to other servers, default is 5
 	 */
-	public static final String SERVER_WEIGHT = "Server[{}].Weight";
+	public static final String SERVER_WEIGHT = "Server[%d].Weight";
 
 	/**
 	 * default weight
@@ -205,15 +198,19 @@ public class DistributedCache extends Cache {
 	int compressionThreshold = 1024 * 4;
 	boolean compress = true;
 
+	ShardedJedis jedis = null;
+
 	/**
 	 * Constructor fired by CacheConfig.loadImplementation
 	 * 
 	 * @param _config
 	 * @throws CacheException
 	 */
-	public DistributedCache(Caches.CacheConfig _config)
-			throws ArgumentException, CacheException {
+	public RedisCache(Caches.CacheConfig _config) throws ArgumentException,
+			CacheException {
 		super(_config);
+
+		List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
 
 		String tmp = null;
 
@@ -233,23 +230,23 @@ public class DistributedCache extends Cache {
 			weights[i] = loadWeight(i);
 		}
 
-		if ((tmp = getParameters().get(SOCKET_POOL_MINSIZE)) != null
-				&& tmp.trim() != "") {
-			this.m_minPoolSize = Integer.parseInt(tmp);
+		// if ((tmp = getParameters().get(SOCKET_POOL_MINSIZE)) != null
+		// && tmp.trim() != "") {
+		// this.m_minPoolSize = Integer.parseInt(tmp);
+		//
+		// if (m_minPoolSize < 1)
+		// throw new ArgumentException(String.format(
+		// S_MUST_BE_AN_INTEGER_1, SOCKET_POOL_MAXSIZE));
+		// }
 
-			if (m_minPoolSize < 1)
-				throw new ArgumentException(String.format(
-						S_MUST_BE_AN_INTEGER_1, SOCKET_POOL_MAXSIZE));
-		}
-
-		if ((tmp = getParameters().get(SOCKET_POOL_MAXSIZE)) != null
-				&& tmp.trim() != "") {
-			this.m_maxPoolSize = Integer.parseInt(tmp);
-
-			if (m_maxPoolSize < 1)
-				throw new ArgumentException(String.format(
-						S_MUST_BE_AN_INTEGER_1, SOCKET_POOL_MAXSIZE));
-		}
+		// if ((tmp = getParameters().get(SOCKET_POOL_MAXSIZE)) != null
+		// && tmp.trim() != "") {
+		// this.m_maxPoolSize = Integer.parseInt(tmp);
+		//
+		// if (m_maxPoolSize < 1)
+		// throw new ArgumentException(String.format(
+		// S_MUST_BE_AN_INTEGER_1, SOCKET_POOL_MAXSIZE));
+		// }
 
 		if ((tmp = getParameters().get(CONNECTION_TIMEOUT)) != null
 				&& tmp.trim() != "") {
@@ -260,122 +257,65 @@ public class DistributedCache extends Cache {
 						S_MUST_BE_AN_INTEGER_1, CONNECTION_TIMEOUT));
 		}
 
-		if ((tmp = getParameters().get(SOCKET_POOL_INIT_CONNS)) != null
-				&& tmp.trim() != "") {
-			initialConnections = Integer.parseInt(tmp);
-		}
+		// if ((tmp = getParameters().get(SOCKET_POOL_INIT_CONNS)) != null
+		// && tmp.trim() != "") {
+		// initialConnections = Integer.parseInt(tmp);
+		// }
 
-		if ((tmp = getParameters().get(SOCKET_POOL_SOCKET_CONNECT_TO)) != null
-				&& tmp.trim() != "") {
-			socketConnectTO = Integer.parseInt(tmp);
-		}
+		// if ((tmp = getParameters().get(SOCKET_POOL_SOCKET_CONNECT_TO)) !=
+		// null
+		// && tmp.trim() != "") {
+		// socketConnectTO = Integer.parseInt(tmp);
+		// }
 
-		if ((tmp = getParameters().get(SOCKET_POOL_SOCKET_TO)) != null
-				&& tmp.trim() != "") {
-			socketTimeOut = Integer.parseInt(tmp);
-		}
+		// if ((tmp = getParameters().get(SOCKET_POOL_SOCKET_TO)) != null
+		// && tmp.trim() != "") {
+		// socketTimeOut = Integer.parseInt(tmp);
+		// }
+		//
+		// if ((tmp = getParameters().get(SOCKET_POOL_MAINT_THREAD_SLEEP)) !=
+		// null
+		// && tmp.trim() != "") {
+		// maintThreadSleep = Integer.parseInt(tmp);
+		// }
 
-		if ((tmp = getParameters().get(SOCKET_POOL_MAINT_THREAD_SLEEP)) != null
-				&& tmp.trim() != "") {
-			maintThreadSleep = Integer.parseInt(tmp);
-		}
+		// if ((tmp = getParameters().get(COMPRESS)) != null && tmp.trim() !=
+		// "") {
+		// compress = Boolean.parseBoolean(tmp);
+		//
+		// if (compress) {
+		// if ((tmp = getParameters().get(COMPRESSION_THRESHOLD)) != null
+		// && tmp.trim() != "") {
+		// compressionThreshold = Integer.parseInt(tmp);
+		// }
+		// }
+		// }
 
-		if ((tmp = getParameters().get(COMPRESS)) != null && tmp.trim() != "") {
-			compress = Boolean.parseBoolean(tmp);
-
-			if (compress) {
-				if ((tmp = getParameters().get(COMPRESSION_THRESHOLD)) != null
-						&& tmp.trim() != "") {
-					compressionThreshold = Integer.parseInt(tmp);
-				}
-			}
-		}
-
-		if (m_minPoolSize > m_maxPoolSize)
-			throw new ArgumentException(
-					"SocketPool.MinSize cannot be greater than SocketPool.MaxSize.");
+		// if (m_minPoolSize > m_maxPoolSize)
+		// throw new ArgumentException(
+		// "SocketPool.MinSize cannot be greater than SocketPool.MaxSize.");
 
 		StringBuffer sb = new StringBuffer();
 		for (String str : servers)
 			sb.append(str).append(";");
 
-		LOGGER
-				.info(
-						"Initializing a Memcached client with servers: {}\n, min socket pool: {}\n, max socket pool: {}\n, timeout: {} mins\n, cache timespan: {} mins.",
-						sb.toString(), m_minPoolSize, m_maxPoolSize, m_timeout,
-						this.m_timespan);
+		LOGGER.info(
+				"Initializing a Redis client with servers: {}\n, min socket pool: {}\n, max socket pool: {}\n, timeout: {} mins\n, cache timespan: {} mins.",
+				sb.toString(), m_minPoolSize, m_maxPoolSize, m_timeout,
+				this.m_timespan);
 
-		// now that we've got all of our information
-		// set up the socket pool and the connection
-		/*
-		 * m_pool = SockIOPool.getInstance(); m_pool.setServers(servers);
-		 * LOGGER.infoFormat("Server: {}", (Object[]) m_pool.getServers());
-		 * 
-		 * m_pool.setWeights(weights); LOGGER.infoFormat("Weights: {}",
-		 * (Object[]) m_pool.getWeights());
-		 * 
-		 * m_pool.setInitConn(initialConnections);
-		 * LOGGER.infoFormat("Initial connections: {}", m_pool.getInitConn());
-		 * 
-		 * m_pool.setMaxIdle(maxIdleTime); LOGGER.infoFormat("Max idle: {} ms",
-		 * m_pool.getMaxIdle());
-		 * 
-		 * m_pool.setMaxBusyTime(maxBusyTime);
-		 * LOGGER.infoFormat("Max busy: {} ms", m_pool.getMaxBusy());
-		 * 
-		 * m_pool.setMaintSleep(maintThreadSleep);
-		 * LOGGER.infoFormat("Maintenance thread will sleep for: {} ms", m_pool
-		 * .getMaintSleep());
-		 * 
-		 * m_pool.setAliveCheck(true); LOGGER.infoFormat("Alive check: {}",
-		 * m_pool.getAliveCheck());
-		 * 
-		 * m_pool.setMaxConn(m_maxPoolSize);
-		 * LOGGER.infoFormat("Max sockets: {}", m_pool.getMaxConn());
-		 * 
-		 * m_pool.setMinConn(m_minPoolSize);
-		 * LOGGER.infoFormat("Min sockets: {}", m_pool.getMinConn());
-		 * 
-		 * m_pool.setNagle(nagleAlg); //
-		 * m_pool.setHashingAlg(SockIOPool.NEW_COMPAT_HASH);
-		 * 
-		 * m_pool.setSocketTO(socketTimeOut);
-		 * LOGGER.infoFormat("Socket Timeout: {} ms", m_pool.getSocketTO());
-		 * 
-		 * m_pool.setSocketConnectTO(socketConnectTO);
-		 * LOGGER.infoFormat("Socket Connect Timeout: {} ms", m_pool
-		 * .getSocketConnectTO());
-		 * 
-		 * m_pool.initialize();
-		 * 
-		 * LOGGER.debug("SocketIOPool is setup.");
-		 * 
-		 * m_client = new MemCachedClient();
-		 * 
-		 * m_client.setCompressEnable(compress);
-		 * m_client.setCompressThreshold(compressionThreshold);
-		 * LOGGER.infoFormat("Compression enabled: {}", compress);
-		 * LOGGER.infoFormat("Compression Threshold: {} bytes",
-		 * compressionThreshold);
-		 * 
-		 * LOGGER.debug("MemCachedClient is setup.");
-		 */
-
-		StringBuilder tmpServers = new StringBuilder();
 		for (String s : servers)
-			tmpServers.append(s);
+			shards.add(new JedisShardInfo(s));
 
-		MemcachedClientBuilder builder = new XMemcachedClientBuilder(AddrUtil
-				.getAddresses(tmpServers.toString()), weights);
-		builder.setConnectionPoolSize(m_maxPoolSize);
-//		builder.setCommandFactory(new BinaryCommandFactory());
-		
-		try {
-			m_client = builder.build();			
-			m_client.setConnectTimeout(socketConnectTO);
-		} catch (Exception e) {
-			throw new CacheException(e.getMessage(), e);
-		}
+		jedis = new ShardedJedis(shards);
+
+		// try {
+		// jedis.set
+		// m_client = builder.build();
+		// m_client.setConnectTimeout(socketConnectTO);
+		// } catch (Exception e) {
+		// throw new CacheException(e.getMessage(), e);
+		// }
 
 		if ((tmp = getParameters().get(CACHE_TIMESPAN)) != null
 				&& tmp.trim() != "") {
@@ -405,11 +345,10 @@ public class DistributedCache extends Cache {
 	@Override
 	public void shutdown() throws CacheException {
 		try {
-			m_client.shutdown();
+			jedis.disconnect();
 		} catch (Exception e) {
 			throw new CacheException(e.getMessage(), e);
 		}
-
 	}
 
 	/**
@@ -423,20 +362,20 @@ public class DistributedCache extends Cache {
 	private String loadServer(int i) throws ArgumentException {
 		String tmp = null;
 
-		StringBuffer sb = new StringBuffer();
+		StringBuffer sb = new StringBuffer("redis://");
 
 		int port;
 
 		if ((tmp = getParameters().get(String.format(SERVER_HOST, i))) == null
 				|| tmp == "")
 			throw new ArgumentException(String.format(SERVER_HOST
-					+ "property is required for DistributedCache", i));
+					+ "property is required for RedisCache", i));
 
 		sb.append(tmp);
 
 		if ((tmp = getParameters().get(String.format(SERVER_PORT, i))) == null
 				|| tmp == "") {
-			port = 11211;
+			port = Protocol.DEFAULT_PORT;
 		} else {
 			port = Integer.parseInt(tmp);
 		}
@@ -473,15 +412,15 @@ public class DistributedCache extends Cache {
 	}
 
 	/**
-	 * @see DistributedCache#set(String, Object)
+	 * @see RedisCache#set(String, Object)
 	 */
 	@Override
 	public boolean set(ICacheable _item) throws CacheException {
-		return set(keyAsString(_item.getCacheKey()), _item);
+		return set(_item.getCacheKey(), _item);
 	}
 
 	/**
-	 * @see DistributedCache#set(String, Object)
+	 * @see RedisCache#set(String, Object)
 	 */
 	public boolean set(Object key, Object value) throws CacheException {
 		return set(keyAsString(key), value);
@@ -492,25 +431,30 @@ public class DistributedCache extends Cache {
 	 * to Will throw a CacheExcedption of the set operation throws up an
 	 * exception, typically a SocketTimeoutException
 	 * 
-	 * @see com.solace.caching.Cache#set(java.lang.String,
-	 *      java.lang.Object)
+	 * @see com.solace.caching.Cache#set(java.lang.String, java.lang.Object)
 	 */
 	@Override
 	public boolean set(String _key, Object _item) throws CacheException {
 		boolean set = false;
 		try {
+			String val = ObjectMapperUtils.getObjectMapper()
+					.writeValueAsString(_item);
+
 			if (!m_hasTimespan) {
-				LOGGER.debug(STORING_S_S, _key, _item.toString());
-				set = m_client.set(keyAsString(_key), 0, _item);
+				LOGGER.debug(STORING_S_S, _key, val);
+
+				set = jedis.set(keyAsString(_key), val) == _key;
 			} else {
 				Date d = getExpiry();
 
-				LOGGER.debug(STORING_S_S_WITH_EXPIRY_S, _key,
-						_item.toString(), d);
+				LOGGER.debug(STORING_S_S_WITH_EXPIRY_S, _key, _item.toString(),
+						d);
 
 				// assume this has to be a differene against now
 				// otherwise why would it be an int.
-				set = m_client.set(keyAsString(_key), (int)(d.getTime() - Calendar.getInstance().getTimeInMillis()), _item, socketConnectTO);
+				set = jedis.setex(keyAsString(_key),
+						(int) (d.getTime() - Calendar.getInstance()
+								.getTimeInMillis()), val) == _key;
 			}
 		} catch (Exception e) {
 			throw new CacheException(COULD_NOT_SET, e, _key, _item);
@@ -525,7 +469,7 @@ public class DistributedCache extends Cache {
 	}
 
 	/**
-	 * @see DistributedCache#get(String)
+	 * @see RedisCache#get(String)
 	 */
 	@Override
 	public Object get(ICacheable _item) throws CacheException {
@@ -533,7 +477,7 @@ public class DistributedCache extends Cache {
 	}
 
 	/**
-	 * @see DistributedCache#get(String)
+	 * @see RedisCache#get(String)
 	 */
 	public Object get(Object o) throws CacheException {
 		return get(keyAsString(o));
@@ -556,19 +500,18 @@ public class DistributedCache extends Cache {
 		Object obj = null;
 
 		try {
-			obj = m_client.get(keyAsString(_key));
+			obj = jedis.get(_key);
 		} catch (Exception e) {
 			throw new CacheException("Could not get", e, _key);
 		}
 
-		LOGGER.debug(KEY_S_S, _key, (obj != null) ? FOUND
-				: NOT_FOUND);
+		LOGGER.debug(KEY_S_S, _key, (obj != null) ? FOUND : NOT_FOUND);
 
 		return obj;
 	}
 
 	/**
-	 * @see DistributedCache#delete(String)
+	 * @see RedisCache#delete(String)
 	 */
 	@Override
 	public boolean delete(ICacheable _item) throws CacheException {
@@ -576,7 +519,7 @@ public class DistributedCache extends Cache {
 	}
 
 	/**
-	 * @see DistributedCache#delete(String)
+	 * @see RedisCache#delete(String)
 	 */
 	public boolean delete(Object key) throws CacheException {
 		return delete(keyAsString(key));
@@ -596,7 +539,7 @@ public class DistributedCache extends Cache {
 
 		boolean retVal = true;
 		try {
-			retVal = m_client.delete(keyAsString(_key));
+			retVal = jedis.del(_key) != null;
 		} catch (Exception e) {
 			throw new CacheException(COULD_NOT_DELETE, e, _key);
 		}
@@ -610,17 +553,8 @@ public class DistributedCache extends Cache {
 	}
 
 	@Override
-	public void clear() throws CacheException {
-		LOGGER.debug("Clearing cache.");
-
-		try {
-			m_client.flushAll();
-//				throw new CacheException(String.format(
-//						"Was not able to clear the cache [{}]", this
-//								.getRegionName()));
-		} catch (Exception e) {
-			throw new CacheException(e.getMessage(), e);
-		}
+	public void clear() throws CacheException {		
+		throw new CacheException(new UnsupportedOperationException("clear not supported by Redis."));
 	}
 
 	protected String keyAsString(Object key) throws CacheException {
