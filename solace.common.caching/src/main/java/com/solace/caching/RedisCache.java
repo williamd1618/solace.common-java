@@ -553,8 +553,28 @@ public class RedisCache extends Cache {
 	}
 
 	@Override
-	public void clear() throws CacheException {		
-		throw new CacheException(new UnsupportedOperationException("clear not supported by Redis."));
+	public void clear() throws CacheException {
+		new UnsupportedOperationException("clear not supported by Redis.");
+	}
+
+	@Override
+	public void incr(String key) throws CacheException {
+		incr(key, 1);
+	}
+
+	@Override
+	public void decr(String key) throws CacheException {
+		decr(key, 1);
+	}
+
+	@Override
+	public void incr(String key, long delta) throws CacheException {
+		jedis.incrBy(key, delta);
+	}
+
+	@Override
+	public void decr(String key, long delta) throws CacheException {
+		jedis.decrBy(key, delta);
 	}
 
 	protected String keyAsString(Object key) throws CacheException {

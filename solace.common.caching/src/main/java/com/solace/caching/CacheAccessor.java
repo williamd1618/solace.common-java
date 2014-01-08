@@ -19,6 +19,7 @@ import com.solace.utility.ReflectionUtil;
 
 import java.util.*;
 import java.util.concurrent.*;
+
 import javax.xml.bind.*;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -273,6 +274,28 @@ public abstract class CacheAccessor implements ICache {
 	public boolean set(Object key, Object obj) throws CacheException {
 		// TODO Auto-generated method stub
 		return m_cache.set(key, obj);
+	}
+	
+	
+
+	@Override
+	public void incr(String key) throws CacheException {
+		incr(key);
+	}
+
+	@Override
+	public void incr(String key, long delta) throws CacheException {
+		m_cache.incr(key, delta);
+	}
+
+	@Override
+	public void decr(String key) throws CacheException {
+		decr(key);
+	}
+
+	@Override
+	public void decr(String key, long delta) throws CacheException {
+		m_cache.decr(key, delta);
 	}
 
 	/* (non-Javadoc)

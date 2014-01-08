@@ -11,14 +11,17 @@
 package com.solace.caching;
 
 import java.io.*;
-
 import java.security.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
+
 
 //import com.danga.MemCached.*;
 import net.rubyeye.xmemcached.*;
 import net.rubyeye.xmemcached.command.*;
+import net.rubyeye.xmemcached.exception.MemcachedException;
 import net.rubyeye.xmemcached.utils.*;
+
 import com.solace.*;
 import com.solace.caching.*;
 import com.solace.logging.*;
@@ -608,6 +611,34 @@ public class MemcachedCache extends Cache {
 
 		return retVal;
 	}
+	
+	@Override
+	public void incr(String key) throws CacheException {
+		incr(key, 1);
+	}
+
+	@Override
+	public void decr(String key) throws CacheException {
+		decr(key, 1);
+	}
+	
+	@Override
+	public void incr(String key, long delta) throws CacheException {
+		try {
+			m_client.incr(key,  delta);
+		} catch (Exception e) {
+			throw new CacheException(e);
+		}
+	}
+
+	@Override
+	public void decr(String key, long delta) throws CacheException {
+		try {
+			m_client.decr(key, delta);
+		} catch (Exception e) {
+			throw new CacheException(e);
+		}
+	}
 
 	@Override
 	public void clear() throws CacheException {
@@ -615,9 +646,6 @@ public class MemcachedCache extends Cache {
 
 		try {
 			m_client.flushAll();
-//				throw new CacheException(String.format(
-//						"Was not able to clear the cache [{}]", this
-//								.getRegionName()));
 		} catch (Exception e) {
 			throw new CacheException(e.getMessage(), e);
 		}
