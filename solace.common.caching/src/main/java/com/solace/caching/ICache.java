@@ -34,6 +34,11 @@ public interface ICache {
 	public boolean delete(String _key) throws CacheException;
 	public boolean delete(Object _key) throws CacheException;
 	
+	public void incr(String key) throws CacheException;
+	public void incr(String key, long delta) throws CacheException;
+	public void decr(String key) throws CacheException;
+	public void decr(String key, long delta) throws CacheException;
+	
 	public String getRegionName() throws CacheException;
 	public void setRegionName(String _name) throws CacheException;
 	

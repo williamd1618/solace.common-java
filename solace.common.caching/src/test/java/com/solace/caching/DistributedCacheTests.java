@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 
 import com.solace.caching.ApplicationAccessor;
 import com.solace.caching.CacheAccessor;
-import com.solace.caching.DistributedCache;
+import com.solace.caching.MemcachedCache;
 import com.solace.caching.ICache;
 import com.solace.logging.*;
 
@@ -48,31 +48,31 @@ public class DistributedCacheTests {
 
 		Caches.CacheConfig.Type.Property p = new Caches.CacheConfig.Type.Property();
 
-		p.setName(DistributedCache.SERVER_COUNT);
+		p.setName(MemcachedCache.SERVER_COUNT);
 		p.setValue("1");
 
 		config.getType().getProperty().add(p);
 
 		p = new Caches.CacheConfig.Type.Property();
-		p.setName(String.format(DistributedCache.SERVER_HOST, 0));
+		p.setName(String.format(MemcachedCache.SERVER_HOST, 0));
 		p.setValue("localhost");
 
 		config.getType().getProperty().add(p);
 
 		p = new Caches.CacheConfig.Type.Property();
-		p.setName(DistributedCache.CACHE_TIMESPAN);
+		p.setName(MemcachedCache.CACHE_TIMESPAN);
 		p.setValue("3");
 
 		config.getType().getProperty().add(p);
 
 		p = new Caches.CacheConfig.Type.Property();
-		p.setName(DistributedCache.SOCKET_POOL_MINSIZE);
+		p.setName(MemcachedCache.SOCKET_POOL_MINSIZE);
 		p.setValue("5");
 
 		config.getType().getProperty().add(p);
 
 		p = new Caches.CacheConfig.Type.Property();
-		p.setName(DistributedCache.SOCKET_POOL_MAXSIZE);
+		p.setName(MemcachedCache.SOCKET_POOL_MAXSIZE);
 		p.setValue("100");
 
 		config.getType().getProperty().add(p);
@@ -117,19 +117,19 @@ public class DistributedCacheTests {
 
 			Caches.CacheConfig.Type.Property p = new Caches.CacheConfig.Type.Property();
 
-			p.setName(DistributedCache.SERVER_COUNT);
+			p.setName(MemcachedCache.SERVER_COUNT);
 			p.setValue("1");
 
 			config.getType().getProperty().add(p);
 
 			p = new Caches.CacheConfig.Type.Property();
-			p.setName(String.format(DistributedCache.SERVER_HOST, 0));
+			p.setName(String.format(MemcachedCache.SERVER_HOST, 0));
 			p.setValue("localhost");
 
 			config.getType().getProperty().add(p);
 
 			p = new Caches.CacheConfig.Type.Property();
-			p.setName(DistributedCache.CACHE_TIMESPAN);
+			p.setName(MemcachedCache.CACHE_TIMESPAN);
 			p.setValue("10");
 
 			config.getType().getProperty().add(p);

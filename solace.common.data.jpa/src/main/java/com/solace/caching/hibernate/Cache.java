@@ -49,8 +49,8 @@ public class Cache implements org.hibernate.cache.Cache {
 					: "default"));
 			this.clearIndexKey = this.regionName.replaceAll("\\s","") + ":index_key";
 			
-			if ( cache instanceof com.solace.caching.DistributedCache )
-				timespan = ((com.solace.caching.DistributedCache)cache).getTimeout();
+			if ( cache instanceof com.solace.caching.MemcachedCache )
+				timespan = ((com.solace.caching.MemcachedCache)cache).getTimeout();
 			
 		} catch (Exception e) {
 		}

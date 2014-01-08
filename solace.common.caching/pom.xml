@@ -29,6 +29,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<redis.version>2.2.1</redis.version>
 	</properties>
 
 	<dependencies>
@@ -40,6 +41,13 @@
 		<dependency>
 			<groupId>com.googlecode.xmemcached</groupId>
 			<artifactId>xmemcached</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>${redis.version}</version>
+			<type>jar</type>
 		</dependency>
 	</dependencies>
 
