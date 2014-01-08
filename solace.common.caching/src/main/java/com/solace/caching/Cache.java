@@ -84,7 +84,7 @@ public class Cache implements ICache {
 
 				LOGGER.debug("caching item [{}]", _key);
 
-				m_cacheItems.put(_key, new CacheItem(_key, _obj));							
+				m_cacheItems.put(_key, new CacheItem(_key, _obj));
 			}
 		}
 		return true;
@@ -109,9 +109,7 @@ public class Cache implements ICache {
 					LOGGER.debug(CACHE_CONFIG_HIT_FOR_ITEM_S, _key);
 					retVal = item.getObject();
 				} else {
-					LOGGER
-							.debug(CACHE_CONFIG_MISS_FOR_ITEM_S,
-									_key);
+					LOGGER.debug(CACHE_CONFIG_MISS_FOR_ITEM_S, _key);
 				}
 			}
 		}
@@ -191,11 +189,14 @@ public class Cache implements ICache {
 			m_key = _key;
 		}
 	}
-	
-	@Override
-	public void shutdown() throws CacheException { }
 
-	/* (non-Javadoc)
+	@Override
+	public void shutdown() throws CacheException {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.solace.caching.ICache#delete(java.lang.Object)
 	 */
 	@Override
@@ -204,7 +205,9 @@ public class Cache implements ICache {
 		return delete(key.toString());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.solace.caching.ICache#get(java.lang.Object)
 	 */
 	@Override
@@ -213,12 +216,34 @@ public class Cache implements ICache {
 		return get(key.toString());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.solace.caching.ICache#set(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public boolean set(Object key, Object obj) throws CacheException {
 		// TODO Auto-generated method stub
 		return set(key.toString(), obj);
+	}
+
+	@Override
+	public void incr(String key) throws CacheException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void decr(String key) throws CacheException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void incr(String key, long delta) throws CacheException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void decr(String key, long delta) throws CacheException {
+		throw new UnsupportedOperationException();	
 	}
 }

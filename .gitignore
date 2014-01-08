@@ -1,6 +1,6 @@
 .project
-*.class
-**/target/
+**.class
+/**/target/**
 dist/*
 build/*
 log/*
